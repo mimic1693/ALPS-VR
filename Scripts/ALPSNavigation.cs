@@ -38,6 +38,7 @@ public class ALPSNavigation : MonoBehaviour {
 	public float backwardUpperBound = 30;
 	public float backwardLimit 		= 50;
     public float characterGravity = 10;
+    public float maxCharacterSpeed = 3;
 
 	public static float ForwardLowerBound;
 	public static float ForwardUpperBound;
@@ -45,7 +46,9 @@ public class ALPSNavigation : MonoBehaviour {
 	public static float BackwardUpperBound;
 	public static float ForwardLimit;
 	public static float BackwardLimit;
+
     public static float CharacterGravity;
+    public static float MaxCharacterSpeed;
 
 	/**Private**/
 	private CharacterController controller;
@@ -90,7 +93,7 @@ public class ALPSNavigation : MonoBehaviour {
 					moving = true;
 				}
 			}
-			controller.Move (new Vector3 (head.transform.forward.x, 0, head.transform.forward.z) * Time.deltaTime * 3);
+            controller.Move(new Vector3(head.transform.forward.x, 0, head.transform.forward.z) * Time.deltaTime * maxCharacterSpeed);
 		} else if (pitch >= BackwardUpperBound && pitch <= BackwardLowerBound) {
 			if (Application.platform == RuntimePlatform.Android){
 				if (!moving){
@@ -98,7 +101,7 @@ public class ALPSNavigation : MonoBehaviour {
 					moving = true;
 				}
 			}
-			controller.Move (new Vector3 (-head.transform.forward.x, 0, -head.transform.forward.z) * Time.deltaTime * 3);
+            controller.Move(new Vector3(-head.transform.forward.x, 0, -head.transform.forward.z) * Time.deltaTime * maxCharacterSpeed);
 			
 		} else {
 			if (Application.platform == RuntimePlatform.Android){
