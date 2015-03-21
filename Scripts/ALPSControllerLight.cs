@@ -57,9 +57,10 @@ public class ALPSControllerLight : MonoBehaviour {
 		#if UNITY_EDITOR
 			head.AddComponent ("MouseLook");
 		#elif UNITY_ANDROID
-			head.AddComponent("ALPSGyro");
-		#endif
-		cameraLeft = new GameObject("CameraLeft");
+            System.Type GyroType = typeof(ALPSGyro);
+			head.AddComponent(GyroType);
+        #endif
+        cameraLeft = new GameObject("CameraLeft");
 		cameraLeft.AddComponent ("Camera");
 		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
 		cameraLeft.transform.parent = head.transform;
