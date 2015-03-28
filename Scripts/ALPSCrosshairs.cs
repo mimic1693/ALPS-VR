@@ -1,7 +1,7 @@
 ﻿/************************************************************************
 	ALPSCrosshair adds a crosshair in the middle of the screen
 	
-    Copyright (C) 2014  ALPS VR.
+    Copyright (C) 2015  ALPS VR.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

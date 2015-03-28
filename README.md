@@ -22,7 +22,7 @@ Drag and drop the ALPSCamera prefab (ALPS/Prefabs/ALPSCamera.prefab) into your s
 ![alt tag](/Screenshots/ALPSVR_Preview.JPG)
 
 ### Requirements ###
-* Unity 4.5 Pro or higher (untested on previous versions)
+* Unity 5 Pro or 4.5 (untested on previous versions)
 * To deploy on Android:
   * Unity Pro for Android
   * Android SDK 3.2 or higher

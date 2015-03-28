@@ -72,7 +72,7 @@ public class ALPSNavigation : MonoBehaviour {
         CharacterGravity = characterGravity;
 
 		controller = this.gameObject.GetComponent ("CharacterController") as CharacterController;
-		this.gameObject.AddComponent ("CharacterMotor");
+		this.gameObject.AddComponent <CharacterMotor>();
         this.gameObject.GetComponent<CharacterMotor>().movement.gravity = CharacterGravity; 
         
         head = GameObject.Find("ALPSHead");

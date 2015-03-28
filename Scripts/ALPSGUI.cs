@@ -1,7 +1,7 @@
 /************************************************************************
 	ALPSGUI provides a basic menu to choose a headset
 
-    Copyright (C) 2014  ALPS VR.
+    Copyright (C) 2015  ALPS VR.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,9 @@ public class ALPSGUI : MonoBehaviour {
 	private float endX;
 	private float maxOffset;
 	private bool GUIVisible;
+	private bool GUIMenu;
+	private bool GUIDeviceSelection;
+	private bool GUICustomConfiguration;
 	private bool showing;
 	private bool hiding;
 	private GUISkin ALPSSkin;
@@ -51,6 +54,9 @@ public class ALPSGUI : MonoBehaviour {
 		endX = 0;
 		maxOffset = -ALPSController.screenWidthPix*0.25f;
 		GUIVisible = false;
+		GUIMenu = true;
+		GUIDeviceSelection = false;
+		GUICustomConfiguration = false;
 		showing = false;
 		hiding = false;
 		ALPSSkin = Resources.Load ("ALPSSkin") as GUISkin;
@@ -131,25 +137,87 @@ public class ALPSGUI : MonoBehaviour {
 	/// </summary>
 	void OnGUI(){
 		if (GUIVisible) {
-			GUI.skin = ALPSSkin;
+
 		
-			// Make a background box
-			GUI.Box (new Rect (0, 0, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix), "Choose a device");
-		
-			if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.15f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Default")) {
-				controller.SetDevice (Device.DEFAULT);
+			if(GUIMenu){
+				GUI.skin = ALPSSkin;
+				GUI.Box (new Rect (0, 0, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix), "Menu");
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.15f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Choose a device")) {
+					GUIDeviceSelection=true;
+					GUIMenu=false;
+				}
+				
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.30f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Custom configuration")) {
+					GUICustomConfiguration=true;
+					GUIMenu=false;
+				}
 			}
-		
-			if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.30f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Altergaze")) {
-				controller.SetDevice (Device.ALTERGAZE);
+			if(GUIDeviceSelection){
+				GUI.skin = ALPSSkin;
+				// Make a background box
+				GUI.Box (new Rect (0, 0, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix), "Choose a device");
+
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.15f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Back")) {
+					GUIMenu=true;
+					GUIDeviceSelection=false;
+				}
+			
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.30f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Default")) {
+					controller.SetDevice (Device.DEFAULT);
+				}
+			
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.45f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Altergaze")) {
+					controller.SetDevice (Device.ALTERGAZE);
+				}
+			
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.60f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Cardboard")) {
+					controller.SetDevice (Device.CARDBOARD);
+				}
+
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.75f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Firefly VR")) {
+					controller.SetDevice (Device.FREEFLY_VR);
+				}
 			}
-		
-			if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.45f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Cardboard")) {
-				controller.SetDevice (Device.CARDBOARD);
-			}
-		
-			if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.60f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Firefly VR")) {
-				controller.SetDevice (Device.FIREFLY);
+			if(GUICustomConfiguration){
+				GUI.skin = ALPSSkin;
+				GUI.Box (new Rect (0, 0, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix), "Custom configuration");
+			
+				//Back
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.15f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Back")) {
+					GUIMenu=true;
+					GUICustomConfiguration=false;
+				}
+
+				//Barrel distortion
+				//K1
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.30f, ALPSController.screenWidthPix * 0.175f, ALPSController.screenHeightPix * 0.10f), "Barrel distortion K1 : "+controller.deviceConfig.k1.ToString("F1"))) {
+				}
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.40f, ALPSController.screenWidthPix * 0.175f, ALPSController.screenHeightPix * 0.10f), "Less")) {
+					controller.AddToK1(-0.1f);
+				}
+				if (GUI.Button (new Rect (ALPSController.screenWidthPix * 0.125f, ALPSController.screenHeightPix * 0.40f, ALPSController.screenWidthPix * 0.125f, ALPSController.screenHeightPix * 0.10f), "More")) {
+					controller.AddToK1(0.1f);
+				}
+
+				//K2
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.50f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.10f), "Barrel distortion K2 : "+controller.deviceConfig.k2.ToString("F1"))) {
+				}
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.60f, ALPSController.screenWidthPix * 0.125f, ALPSController.screenHeightPix * 0.10f), "Less")) {
+					controller.AddToK2(-0.1f);
+				}
+				if (GUI.Button (new Rect (ALPSController.screenWidthPix * 0.125f, ALPSController.screenHeightPix * 0.60f, ALPSController.screenWidthPix * 0.125f, ALPSController.screenHeightPix * 0.10f), "More")) {
+					controller.AddToK2(0.1f);
+				}
+
+				//CC
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.70f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.10f), "Chromatic correction : "+controller.deviceConfig.chromaticCorrection.ToString("F1"))) {
+				}
+				if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.80f, ALPSController.screenWidthPix * 0.125f, ALPSController.screenHeightPix * 0.10f), "Less")) {
+					controller.AddToChromaticCorrection(-0.1f);
+				}
+				if (GUI.Button (new Rect (ALPSController.screenWidthPix * 0.125f, ALPSController.screenHeightPix * 0.80f, ALPSController.screenWidthPix * 0.125f, ALPSController.screenHeightPix * 0.10f), "More")) {
+					controller.AddToChromaticCorrection(0.1f);
+				}
 			}
 		}
 	}
