@@ -1,7 +1,7 @@
 ﻿/************************************************************************
 	ALPSDevice provides a specific configuration for each supported device
 
-    Copyright (C) 2015  ALPS VR.
+    Copyright (C) 2014  ALPS VR.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ using System.Collections;
 		DEFAULT,
 		ALTERGAZE,
 		CARDBOARD,
-		FREEFLY_VR
+		FIREFLY
 	};
 
 	public enum ScreenOption{
@@ -56,8 +56,8 @@ public class ALPSDevice {
 			case Device.CARDBOARD:
 			config = new ALPSConfig(Device.CARDBOARD,true,true,false,62f,62f,85f,-1.5f,0.5f,0.2f,128,75);
 				break;
-			case Device.FREEFLY_VR:
-			config = new ALPSConfig(Device.FREEFLY_VR,true,true,false,62f,62f,85f,-2f,0.7f,0.2f,140,75);
+			case Device.FIREFLY:
+			config = new ALPSConfig(Device.FIREFLY,true,true,false,62f,62f,85f,-2f,0.7f,0.2f,140,75);
 				break;
 			case Device.DEFAULT:
 			default: 

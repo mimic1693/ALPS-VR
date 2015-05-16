@@ -1,7 +1,7 @@
 /************************************************************************
 	ALPSCamera manages both cameras required for stereo vision
 	
-    Copyright (C) 2015  ALPS VR.
+    Copyright (C) 2014  ALPS VR.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ public class ALPSCamera : MonoBehaviour{
 	/**Public**/
 	public static ALPSConfig deviceConfig;
 	public bool leftEye;
-	public Camera cameraComponent;
 
 	/**Private**/
 	private Mesh mesh;
@@ -43,20 +42,19 @@ public class ALPSCamera : MonoBehaviour{
 	/// Initializes the camera.
 	/// </summary>
 	public void Init(){
-		cameraComponent = GetComponent<Camera> ();
-		Vector3 camLeftPos = cameraComponent.transform.localPosition; 
+		Vector3 camLeftPos = camera.transform.localPosition; 
 		camLeftPos.x = (leftEye?-1:1) * deviceConfig.ILD * 0.0005f;
 		camLeftPos.z = ALPSConfig.neckPivotToEye.x * 0.001f;
 		camLeftPos.y = ALPSConfig.neckPivotToEye.y * 0.001f;
-		cameraComponent.transform.localPosition = camLeftPos;
+		camera.transform.localPosition = camLeftPos;
 	}
 
 	/// <summary>
 	/// Updates the mesh used for barrel distortion.
 	/// </summary>
 	public void UpdateMesh(){
-		cameraComponent.rect = new Rect ((leftEye?0f:0.5f),0f,0.5f,1f);
-		cameraComponent.aspect = deviceConfig.Width*0.5f / deviceConfig.Height;
+		camera.rect = new Rect ((leftEye?0f:0.5f),0f,0.5f,1f);
+		camera.aspect = deviceConfig.Width*0.5f / deviceConfig.Height;
 		mesh = ALPSBarrelMesh.GenerateMesh(20,20,leftEye);
 	}
 

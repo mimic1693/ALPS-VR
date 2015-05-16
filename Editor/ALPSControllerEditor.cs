@@ -1,7 +1,7 @@
 ﻿/************************************************************************
 	ALPSControllerEditor is a custom editor for ALPSController class
 	
-    Copyright (C) 2015  ALPS VR.
+    Copyright (C) 2014  ALPS VR.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,7 +77,6 @@ public class ALPSControllerEditor : Editor {
 
 		//IPD
 		deviceConfig.IPD = EditorGUILayout.FloatField (new GUIContent("IPD", "Inter Pupilary Distance in millimeter. This must match the distance between the user's eyes"),deviceConfig.IPD);
-
 		//Stereo distance
 		deviceConfig.ILD = EditorGUILayout.FloatField (new GUIContent("ILD","Inter Lens Distance in millimeter. This is the distance between both cameras and this should match the IPD. Can be tweaked to increase or decrease the stereo effect."),deviceConfig.ILD);
 
@@ -108,7 +107,6 @@ public class ALPSControllerEditor : Editor {
 			deviceConfig.chromaticCorrection = EditorGUILayout.FloatField ("\tCorrection intensity", deviceConfig.chromaticCorrection);
 		}
 
-		//Crosshairs
 		controller.crosshairsEnabled = EditorGUILayout.Toggle("Crosshair", controller.crosshairsEnabled); 
 
 		if (GUI.changed) {

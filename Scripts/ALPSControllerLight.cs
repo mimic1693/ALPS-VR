@@ -1,7 +1,7 @@
 ﻿/************************************************************************
 	ALPSControllerLight is the main class for non Pro license holders
 	
-    Copyright (C) 2015  ALPS VR.
+    Copyright (C) 2014  ALPS VR.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 using UnityEngine;
 using System.Collections;
 
-[System.Serializable]
 public class ALPSControllerLight : MonoBehaviour {
 
 	//=====================================================================================================
@@ -29,15 +28,17 @@ public class ALPSControllerLight : MonoBehaviour {
 	//=====================================================================================================
 
 	/**Public**/
-	//The current device configuration
-	public ALPSConfig deviceConfig = ALPSDevice.GetConfig(Device.DEFAULT);
-
 	//One camera for each eye
 	public GameObject cameraLeft;
 	public GameObject cameraRight;
 
 	//Head represents user's head
 	public GameObject head;
+
+	//Inter lens distance in millimeters. Should match the IPD but can be tweaked
+	//to increase or decrease the stereo effect. Basically, with an ILD set to 0, there
+	//is no 3D effect.
+	public float ILD;
 
 	//Vector between eyes and the pivot point (neck)
 	public Vector2 neckToEye;
@@ -50,71 +51,33 @@ public class ALPSControllerLight : MonoBehaviour {
 	/// Initializes side-by-side rendering and head tracking.
 	/// </summary>
 	public void Awake () {
-		//Adding head
-		head = GameObject.Find("ALPSHead");
-		if(head == null) head = new GameObject("ALPSHead");
+		head = new GameObject ("ALPSHead");
 		head.transform.parent = transform;
 		head.transform.position = transform.position;
-
 		#if UNITY_EDITOR
-			head.AddComponent (typeof(MouseLook));
+			head.AddComponent ("MouseLook");
 		#elif UNITY_ANDROID
-			head.AddComponent(typeof(ALPSGyro));
-		#endif
+            System.Type GyroType = typeof(ALPSGyro);
+			head.AddComponent(GyroType);
+        #endif
+        cameraLeft = new GameObject("CameraLeft");
+		cameraLeft.AddComponent ("Camera");
+		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
+		cameraLeft.transform.parent = head.transform;
+		cameraLeft.transform.position = head.transform.position;
+		cameraLeft.transform.localPosition = new Vector3 (ILD*-0.0005f,neckToEye.y*0.001f,neckToEye.x*0.001f);
 
-		for (var i=0; i<2; i++) {
-			bool left = (i==0);
-			GameObject OneCamera = GameObject.Find(left?"CameraLeft":"CameraRight");
-			if(OneCamera == null) OneCamera = new GameObject(left?"CameraLeft":"CameraRight");
-			OneCamera.GetComponent<Camera>().rect = new Rect ((left?0:0.5f),0,0.5f,1);
-			OneCamera.transform.parent = head.transform;
-
-			Vector3 OneCamPos = head.transform.position;
-			OneCamPos.z = ALPSConfig.neckPivotToEye.x * 0.001f;
-			OneCamPos.y = ALPSConfig.neckPivotToEye.y * 0.001f;
-			OneCamera.transform.position = OneCamPos;
-
-			if(left)cameraLeft = OneCamera;
-			else cameraRight = OneCamera;
-		}
-
+		cameraRight = new GameObject("CameraRight");
+		cameraRight.AddComponent ("Camera");
+		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
+		cameraRight.transform.parent = head.transform;
+		cameraRight.transform.position = head.transform.position;
+		cameraRight.transform.localPosition = new Vector3 (ILD*0.0005f,neckToEye.y*0.001f,neckToEye.x*0.001f);
 
 		AudioListener[] listeners = FindObjectsOfType(typeof(AudioListener)) as AudioListener[];
 		if (listeners.Length < 1) {
-			gameObject.AddComponent (typeof(AudioListener));
+			gameObject.AddComponent ("AudioListener");
 		}
-
-		ClearDirty ();
-	}
-
-	/// <summary>
-	/// Resets all the settings and applies the current DeviceConfig
-	/// </summary>
-	public void ClearDirty(){
-		if (cameraLeft != null && cameraRight != null) {
-			cameraLeft.transform.localPosition = new Vector3 (deviceConfig.ILD * -0.0005f, ALPSConfig.neckPivotToEye.y * 0.001f, ALPSConfig.neckPivotToEye.x * 0.001f);
-			cameraRight.transform.localPosition = new Vector3 (deviceConfig.ILD * 0.0005f, ALPSConfig.neckPivotToEye.y * 0.001f, ALPSConfig.neckPivotToEye.x * 0.001f);
-
-			Vector3 camLeftPos = cameraLeft.transform.localPosition; 
-			camLeftPos.x = -deviceConfig.ILD * 0.0005f;
-			cameraLeft.transform.localPosition = camLeftPos;
-		
-			Vector3 camRightPos = cameraRight.transform.localPosition;
-			camRightPos.x = deviceConfig.ILD * 0.0005f;
-			cameraRight.transform.localPosition = camRightPos;
-
-			cameraLeft.GetComponent<Camera>().fieldOfView = deviceConfig.fieldOfView;
-			cameraRight.GetComponent<Camera>().fieldOfView = deviceConfig.fieldOfView;
-		}
-	}
-
-	/// <summary>
-	/// Sets a new device configuration.
-	/// </summary>
-	// <param name="_device">Name of the device.</param>
-	public void SetDevice(Device _device){
-		deviceConfig = ALPSDevice.GetConfig (_device);
-		ClearDirty ();
 	}
 
 	/// <summary>
@@ -122,10 +85,10 @@ public class ALPSControllerLight : MonoBehaviour {
 	/// </summary>
 	/// <param name="_cam">The camera from which you want to copy the settings.</param>
 	public void SetCameraSettings(Camera _cam){
-		cameraLeft.GetComponent<Camera>().CopyFrom (_cam);
-		cameraRight.GetComponent<Camera>().CopyFrom (_cam);
-		cameraLeft.GetComponent<Camera>().rect = new Rect (0,0,0.5f,1);
-		cameraRight.GetComponent<Camera>().rect = new Rect (0.5f,0,0.5f,1);
+		cameraLeft.camera.CopyFrom (_cam);
+		cameraRight.camera.CopyFrom (_cam);
+		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
+		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
 	}
 	
 	/// <summary>
@@ -138,11 +101,11 @@ public class ALPSControllerLight : MonoBehaviour {
 		int rightLayer = LayerMask.NameToLayer (_rightLayer);
 		if (leftLayer < 0 && rightLayer < 0) return -1;
 
-		cameraLeft.GetComponent<Camera>().cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
-		cameraLeft.GetComponent<Camera>().cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
+		cameraLeft.camera.cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
+		cameraLeft.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
 
-		cameraRight.GetComponent<Camera>().cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
-		cameraRight.GetComponent<Camera>().cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
+		cameraRight.camera.cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
+		cameraRight.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
 
 		return 0;
 	}
@@ -156,53 +119,17 @@ public class ALPSControllerLight : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Returns right camera forward direction vector. This can be useful for setting up a Raycast.
+	/// Returns forward direction vector. This can be useful for setting up a Raycast.
 	/// </summary>
-	public Vector3 RaycastForwardDirection(){
-		return cameraRight.GetComponent<Camera>().transform.forward;
-	}
-	
-	/// <summary>
-	/// Returns the position of either the left camera, the right camera or the center point. This may be useful for setting up a Raycast.
-	/// </summary>
-	/// <param name="_origin">Either "left", "right" or "center".</param>
-	public Vector3 RaycastOrigin(string _origin){
-		Vector3 origin = new Vector3();
-		switch(_origin.ToUpper ()){
-		case "LEFT":
-			origin = cameraLeft.transform.position;
-			break;
-		case "RIGHT":
-			origin = cameraRight.transform.position;
-			break;
-		case "CENTER":
-			origin = PointOfView();
-			break;
-		default:
-			Debug.LogError("RaycastOrigin(string _origin): You can only choose 'left', 'right' or 'center' as a Raycast origin. "+_origin+" is not an expected value");
-			break;
-		}
-		return origin;
-	}
-	
-	/// <summary>
-	/// Sets the vertical field of view for both cameras.
-	/// </summary>
-	/// <param name="_fov">The vertical fiel of view to be set (between 1 and 180).</param>
-	public void setFieldOfView(float _fov){
-		if (_fov < 1 || _fov > 180) {
-			Debug.LogWarning("setFieldOfView(float _fov): Field of view must range between 1 and 180");
-			_fov = (_fov<1)?1:180;
-		}
-		deviceConfig.fieldOfView = _fov;
-		ClearDirty ();
+	public Vector3 ForwardDirection(){
+		return cameraLeft.camera.transform.forward;
 	}
 
 	/// <summary>
 	/// Returns left and right cameras.
 	/// </summary>
 	public Camera[] GetCameras(){
-		Camera[] cams = {cameraLeft.GetComponent<Camera>(), cameraRight.GetComponent<Camera>()};
+		Camera[] cams = {cameraLeft.camera, cameraRight.camera};
 		return cams;
 	}
 }

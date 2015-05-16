@@ -1,7 +1,7 @@
 ﻿/************************************************************************
 	ALPSController is the main class which manages custom rendering
 
-    Copyright (C) 2015  ALPS VR.
+    Copyright (C) 2014  ALPS VR.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,9 +36,6 @@ public class ALPSController : MonoBehaviour {
 	public GameObject cameraLeft;
 	public GameObject cameraRight;
 
-	//Camera for rendering
-	public Camera cameraRender;
-
 	//Head represents user's head
 	public GameObject head;
 
@@ -68,29 +65,29 @@ public class ALPSController : MonoBehaviour {
 	/// Initializes side-by-side rendering and head tracking. 
 	/// </summary>
 	public void Awake(){
-		cameraRender = GetComponent<Camera> ();
-		PropagateConfig();
+		ALPSCamera.deviceConfig = deviceConfig;
+		ALPSBarrelMesh.deviceConfig = deviceConfig;
+		ALPSCrosshairs.deviceConfig = deviceConfig;
 		ALPSGUI.controller = this;
 
-		head = GameObject.Find("ALPSHead");
-		if(head == null) head = new GameObject("ALPSHead");
+		head = new GameObject ("ALPSHead");
 		head.transform.parent = transform;
 		head.transform.position = transform.position;
 
-
 		#if UNITY_EDITOR
-			head.AddComponent(typeof(MouseLook));
+			head.AddComponent("MouseLook");
 			screenWidthPix = Screen.width;
 			screenHeightPix = Screen.height;
 		#elif UNITY_ANDROID
-			head.AddComponent(typeof(ALPSGyro));
+            System.Type GyroType = typeof(ALPSGyro);
+			head.AddComponent(GyroType);
 			Screen.orientation = ScreenOrientation.LandscapeLeft;
 			ALPSAndroid.Init ();
 			screenWidthPix = ALPSAndroid.WidthPixels ();
 			screenHeightPix = ALPSAndroid.HeightPixels ();
-		#endif
+#endif
 
-		//Make sure the longer dimension is width as the phone is always in landscape mode
+        //Make sure the longer dimension is width as the phone is always in landscape mode
 		if(screenWidthPix<screenHeightPix){
 			int tmp = screenHeightPix;
 			screenHeightPix = screenWidthPix;
@@ -99,11 +96,9 @@ public class ALPSController : MonoBehaviour {
 
 		for (var i=0; i<2; i++) {
 			bool left = (i==0);
-
-			GameObject OneCamera = GameObject.Find(left?"CameraLeft":"CameraRight");
-			if(OneCamera == null) OneCamera = new GameObject(left?"CameraLeft":"CameraRight");
-			if(OneCamera.GetComponent<Camera>() == null) OneCamera.AddComponent(typeof(Camera));
-			if(OneCamera.GetComponent<ALPSCamera>() == null) OneCamera.AddComponent(typeof(ALPSCamera));
+			GameObject OneCamera = new GameObject(left?"CameraLeft":"CameraRight");
+			OneCamera.AddComponent("Camera");
+			OneCamera.AddComponent("ALPSCamera");
 			(OneCamera.GetComponent("ALPSCamera") as ALPSCamera).leftEye = left;
 			OneCamera.transform.parent = head.transform;
 			OneCamera.transform.position = head.transform.position;
@@ -122,28 +117,28 @@ public class ALPSController : MonoBehaviour {
 
 		//Render Textures
 		srcTex = new RenderTexture (2048, 1024, 16);
-		destTex = cameraRender.targetTexture;
-		cameraLeft.GetComponent<Camera>().targetTexture = cameraRight.GetComponent<Camera>().targetTexture = srcTex;
+		destTex = camera.targetTexture;
+		cameraLeft.camera.targetTexture = cameraRight.camera.targetTexture = srcTex;
 
 		// Setting the main camera
-		cameraRender.aspect = 1f;
-		cameraRender.backgroundColor = Color.black;
-		cameraRender.clearFlags =  CameraClearFlags.Nothing;
-		cameraRender.cullingMask = 0;
-		cameraRender.eventMask = 0;
-		cameraRender.orthographic = true;
-		cameraRender.renderingPath = RenderingPath.Forward;
-		cameraRender.useOcclusionCulling = false;
-		cameraLeft.GetComponent<Camera>().depth = 0;
-		cameraRight.GetComponent<Camera>().depth = 1;
-		cameraRender.depth = Mathf.Max (cameraLeft.GetComponent<Camera>().depth, cameraRight.GetComponent<Camera>().depth) + 1;
+		camera.aspect = 1f;
+		camera.backgroundColor = Color.black;
+		camera.clearFlags =  CameraClearFlags.Nothing;
+		camera.cullingMask = 0;
+		camera.eventMask = 0;
+		camera.orthographic = true;
+		camera.renderingPath = RenderingPath.Forward;
+		camera.useOcclusionCulling = false;
+		cameraLeft.camera.depth = 0;
+		cameraRight.camera.depth = 1;
+		camera.depth = Mathf.Max (cameraLeft.camera.depth, cameraRight.camera.depth) + 1;
 
-		cameraLeft.gameObject.AddComponent(typeof(ALPSCrosshairs));
-		cameraRight.gameObject.AddComponent(typeof(ALPSCrosshairs));
+		cameraLeft.gameObject.AddComponent("ALPSCrosshairs");
+		cameraRight.gameObject.AddComponent("ALPSCrosshairs");
 
 		AudioListener[] listeners = FindObjectsOfType(typeof(AudioListener)) as AudioListener[];
 		if (listeners.Length < 1) {
-			gameObject.AddComponent (typeof(AudioListener));
+			gameObject.AddComponent ("AudioListener");
 		}
 
 		ClearDirty();
@@ -185,15 +180,6 @@ public class ALPSController : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Propagates the current configuation to the other classes
-	/// </summary>
-	public void PropagateConfig(){
-		ALPSCamera.deviceConfig = deviceConfig;
-		ALPSBarrelMesh.deviceConfig = deviceConfig;
-		ALPSCrosshairs.deviceConfig = deviceConfig;
-	}
-
-	/// <summary>
 	/// Resets all the settings and applies the current DeviceConfig
 	/// </summary>
 	public void ClearDirty(){
@@ -218,8 +204,8 @@ public class ALPSController : MonoBehaviour {
 			camRightPos.x = deviceConfig.ILD*0.0005f;
 			cameraRight.transform.localPosition = camRightPos;
 			
-			cameraLeft.GetComponent<Camera>().fieldOfView = deviceConfig.fieldOfView;
-			cameraRight.GetComponent<Camera>().fieldOfView = deviceConfig.fieldOfView;
+			cameraLeft.camera.fieldOfView = deviceConfig.fieldOfView;
+			cameraRight.camera.fieldOfView = deviceConfig.fieldOfView;
 
 			cameraLeft.GetComponent<ALPSCamera>().UpdateMesh();
 			cameraRight.GetComponent<ALPSCamera>().UpdateMesh();
@@ -249,37 +235,9 @@ public class ALPSController : MonoBehaviour {
 	// <param name="_device">Name of the device.</param>
 	public void SetDevice(Device _device){
 		deviceConfig = ALPSDevice.GetConfig (_device);
-		PropagateConfig ();
-		ClearDirty ();
-	}
-
-	/// <summary>
-	/// Add x to K1.
-	/// </summary>
-	// <param name="_x">Float to add to K1.</param>
-	public void AddToK1(float _x){
-		deviceConfig.k1 += _x;
-		PropagateConfig ();
-		ClearDirty ();
-	}
-
-	/// <summary>
-	/// Add x to K2.
-	/// </summary>
-	// <param name="_x">Float to add to K2.</param>
-	public void AddToK2(float _x){
-		deviceConfig.k2 += _x;
-		PropagateConfig ();
-		ClearDirty ();
-	}
-
-	/// <summary>
-	/// Add x to Chromatic Correction.
-	/// </summary>
-	// <param name="_x">Float to add to Chromatic Correction.</param>
-	public void AddToChromaticCorrection(float _x){
-		deviceConfig.chromaticCorrection += _x;
-		PropagateConfig ();
+		ALPSCamera.deviceConfig = deviceConfig;
+		ALPSBarrelMesh.deviceConfig = deviceConfig;
+		ALPSCrosshairs.deviceConfig = deviceConfig;
 		ClearDirty ();
 	}
 
@@ -288,10 +246,10 @@ public class ALPSController : MonoBehaviour {
 	/// </summary>
 	/// <param name="_cam">The camera from which you want to copy the settings.</param>
 	public void SetCameraSettings(Camera _cam){
-		cameraLeft.GetComponent<Camera>().CopyFrom (_cam);
-		cameraRight.GetComponent<Camera>().CopyFrom (_cam);
-		cameraLeft.GetComponent<Camera>().rect = new Rect (0,0,0.5f,1);
-		cameraRight.GetComponent<Camera>().rect = new Rect (0.5f,0,0.5f,1);
+		cameraLeft.camera.CopyFrom (_cam);
+		cameraRight.camera.CopyFrom (_cam);
+		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
+		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
 	}
 	
 	/// <summary>
@@ -304,11 +262,11 @@ public class ALPSController : MonoBehaviour {
 		int rightLayer = LayerMask.NameToLayer (_rightLayer);
 		if (leftLayer < 0 && rightLayer < 0) return -1;
 		
-		cameraLeft.GetComponent<Camera>().cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
-		cameraLeft.GetComponent<Camera>().cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
+		cameraLeft.camera.cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
+		cameraLeft.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
 		
-		cameraRight.GetComponent<Camera>().cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
-		cameraRight.GetComponent<Camera>().cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
+		cameraRight.camera.cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
+		cameraRight.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
 		
 		return 0;
 	}
@@ -322,53 +280,17 @@ public class ALPSController : MonoBehaviour {
 	}
 	
 	/// <summary>
-	/// Returns right camera forward direction vector. This can be useful for setting up a Raycast.
+	/// Returns forward direction vector. This can be useful for setting up a Raycast.
 	/// </summary>
-	public Vector3 RaycastForwardDirection(){
-		return cameraRight.GetComponent<Camera>().transform.forward;
+	public Vector3 ForwardDirection(){
+		return cameraLeft.camera.transform.forward;
 	}
-
-	/// <summary>
-	/// Returns the position of either the left camera, the right camera or the center point. This may be useful for setting up a Raycast.
-	/// </summary>
-	/// <param name="_origin">Either "left", "right" or "center".</param>
-	public Vector3 RaycastOrigin(string _origin){
-		Vector3 origin = new Vector3();
-		switch(_origin.ToUpper ()){
-			case "LEFT":
-				origin = cameraLeft.transform.position;
-				break;
-			case "RIGHT":
-				origin = cameraRight.transform.position;
-				break;
-			case "CENTER":
-				origin = PointOfView();
-				break;
-			default:
-				Debug.LogError("RaycastOrigin(string _origin): You can only choose 'left', 'right' or 'center' as a Raycast origin. "+_origin+" is not an expected value");
-				break;
-		}
-		return origin;
-	}
-
-	/// <summary>
-	/// Sets the vertical field of view for both cameras.
-	/// </summary>
-	/// <param name="_fov">The vertical fiel of view to be set (between 1 and 180).</param>
-	public void setFieldOfView(float _fov){
-		if (_fov < 1 || _fov > 180) {
-			Debug.LogWarning("setFieldOfView(float _fov): Field of view must range between 1 and 180");
-			_fov = (_fov<1)?1:180;
-		}
-		deviceConfig.fieldOfView = _fov;
-		ClearDirty ();
-	}
-
+	
 	/// <summary>
 	/// Returns left and right cameras.
 	/// </summary>
 	public Camera[] GetCameras(){
-		Camera[] cams = {cameraLeft.GetComponent<Camera>(), cameraRight.GetComponent<Camera>()};
+		Camera[] cams = {cameraLeft.camera, cameraRight.camera};
 		return cams;
 	}
-} 
+}
